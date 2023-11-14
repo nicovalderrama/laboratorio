@@ -17,7 +17,7 @@ struct Mesa{
 int cargarMesa(){
     FILE *mesas = fopen("mesas.bin","ab");
     if (mesas == NULL){
-        printf("Hubo un error\n");
+        printf("\nHubo un error\n");
         return -1;
     }
     struct Mesa mesa1;
@@ -32,7 +32,7 @@ int cargarMesa(){
             do {
                 scanf("%d", &mesa1.partidos[i].partido);
                 if(mesa1.partidos[i].partido < 1 || mesa1.partidos[i].partido > 5){
-                    printf("Ingrese una opci%cn correcta",162);
+                    printf("Ingrese una opci%cn correcta\n",162);
                 }
             } while (mesa1.partidos[i].partido < 1 || mesa1.partidos[i].partido > 5);
 
