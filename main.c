@@ -17,7 +17,7 @@ struct Mesa{
 int cargarMesa(){
     FILE *mesas = fopen("mesas.bin","ab");
     if (mesas == NULL){
-        printf("\nHubo un error\n");
+        printf("Hubo un error\n");
         return -1;
     }
     struct Mesa mesa1;
