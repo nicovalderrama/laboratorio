@@ -264,37 +264,78 @@ int mostrar_mesa_id(int num_mesa){
     }
     struct Mesa mesa;
     admin adm;
-    int mesa_encontrada;
+    int mesa_encontrada = 0;
     fread(&adm,sizeof(adm),1,data);
     int n = adm.cantp;
     struct Nombres nombres_array[n];
 
-    while (fread(&mesa,sizeof(mesa),1,mesas)){
-        if(mesa.num_mesa == num_mesa){
-                mesa_encontrada = 1;
-                int mas_votado = 0;
-                int votos_totales_presi = 0;
-                for (int i = 0; i < n ; ++i) {
-                    votos_totales_presi += mesa.partidos[i].votos_presidente;
-                    if(mesa.partidos[i].votos_presidente > mesa.partidos[mas_votado].votos_presidente){
-                        mas_votado=i;
-                    }
+    while (fread(&mesa, sizeof(mesa), 1, mesas)) {
+        if (mesa.num_mesa == num_mesa) {
+            mesa_encontrada = 1;
+            int presi_mas_votado = 0;
+            int votos_totales_presi = 0;
+
+            for (int i = 0; i < n; ++i) {
+                votos_totales_presi += mesa.partidos[i].votos_presidente;
+                if (mesa.partidos[i].votos_presidente > mesa.partidos[presi_mas_votado].votos_presidente) {
+                    presi_mas_votado = i;
                 }
-                fread(nombres_array, sizeof(struct Nombres), n, nombres);
-                printf("-------------------------------------------------------------------------------------------------------\n");
-                printf("| %-8s | %-20s | %-20s | %-8s | %-10s |\n", "N. MESA", "PARTIDO", "PRESIDENTE", "VOTOS P.", "PORCENTAJE");
-                printf("-------------------------------------------------------------------------------------------------------\n");
-                printf("| %-8d | %-20s | %-20s | %-8d |\n", mesa.num_mesa, nombres_array[mas_votado].frente, nombres_array[mas_votado].presi, mesa.partidos[mas_votado].votos_presidente);
-                for (int i = 0; i < n; ++i) {
-                    if (i != mas_votado) {
-                        printf("| %-8s | %-20s | %-20s | %-8d |\n", "", nombres_array[i].frente, nombres_array[i].presi, mesa.partidos[i].votos_presidente);
-                    }
-                }
-                printf("-------------------------------------------------------------------------------------------------------\n");
             }
+
+            fread(nombres_array, sizeof(struct Nombres), n, nombres);
+            printf("-------------------------------------------------------------------------------------\n");
+            printf("| %-8s | %-20s | %-20s | %-8s | %-13s |\n", "N. MESA", "PARTIDO", "PRESIDENTE", "VOTOS P.", "PORCENTAJE");
+            printf("-------------------------------------------------------------------------------------\n");
+
+            float pje_presi_mas_votado = (mesa.partidos[presi_mas_votado].votos_presidente * 100.0) / votos_totales_presi;
+            printf("| %-8d | %-20s | %-20s | %-8d | %-12.2f%c |\n",
+                   mesa.num_mesa, nombres_array[presi_mas_votado].frente, nombres_array[presi_mas_votado].presi,
+                   mesa.partidos[presi_mas_votado].votos_presidente, pje_presi_mas_votado,37);
+
+            for (int i = 0; i < n; ++i) {
+                if (i != presi_mas_votado) {
+                    float porcentaje_votado = (mesa.partidos[i].votos_presidente * 100.0) / votos_totales_presi;
+                    printf("| %-8s | %-20s | %-20s | %-8d | %-12.2f%c |\n",
+                           "", nombres_array[i].frente, nombres_array[i].presi,
+                           mesa.partidos[i].votos_presidente, porcentaje_votado,37);
+                }
+            }
+            printf("-------------------------------------------------------------------------------------\n");
+
+            int gob_mas_votado = 0;
+            int votos_totales_gob = 0;
+
+            for (int i = 0; i < n; ++i) {
+                votos_totales_gob += mesa.partidos[i].votos_gobernador;
+                if (mesa.partidos[i].votos_gobernador > mesa.partidos[gob_mas_votado].votos_gobernador) {
+                    gob_mas_votado = i;
+                }
+            }
+
+            fread(nombres_array, sizeof(struct Nombres), n, nombres);
+            printf("-------------------------------------------------------------------------------------\n");
+            printf("| %-8s | %-20s | %-20s | %-8s | %-13s |\n", "N. MESA", "PARTIDO", "GOBERNADOR", "VOTOS G.", "PORCENTAJE");
+            printf("-------------------------------------------------------------------------------------\n");
+
+            float pje_gob_mas_votado = (mesa.partidos[gob_mas_votado].votos_gobernador * 100.0) / votos_totales_gob;
+            printf("| %-8d | %-20s | %-20s | %-8d | %-12.2f%c |\n",
+                   mesa.num_mesa, nombres_array[gob_mas_votado].frente, nombres_array[gob_mas_votado].gob,
+                   mesa.partidos[gob_mas_votado].votos_gobernador, pje_gob_mas_votado,37);
+
+            for (int i = 0; i < n; ++i) {
+                if (i != gob_mas_votado) {
+                    float porcentaje_votado = (mesa.partidos[i].votos_gobernador * 100.0) / votos_totales_gob;
+                    printf("| %-8s | %-20s | %-20s | %-8d | %-12.2f%c |\n",
+                           "", nombres_array[i].frente, nombres_array[i].gob,
+                           mesa.partidos[i].votos_gobernador, porcentaje_votado,37);
+                }
+            }
+            printf("-------------------------------------------------------------------------------------\n");
+            fflush(stdin);
         }
+    }
         if(mesa_encontrada != 1){
-            printf("No se encontr%c la mesa n%cmero: %d\n",162,163,num_mesa);
+            printf("\v\vNO SE ENCONTR%c LA MESA N%cMERO: %d\n",224,233,num_mesa);
         }
     system("pause");
     system("cls");
@@ -321,6 +362,7 @@ int main() {
             int num_mesa;
             printf("Ingrese el n%cmero de mesa que desea buscar:\n",163);
             scanf("%d",&num_mesa);
+            system("cls");
             mostrar_mesa_id(num_mesa);
         }
     } while (opcion != 4);
