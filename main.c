@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 typedef struct{
-	char contrasenia[10];
+    char contrasenia[10];
     int cantp;
 }admin;
 
@@ -48,15 +48,15 @@ int cargarMesa(){
         if(comprobar!=1)
         {
             printf("CARGAR LA CANTIDAD DE VOTOS PARA CADA PARTIDO\n");
-        /*for (int i = 0; i < 5; ++i) {
-            printf("Ingrese el nombre del partido\n");
-            printf("1_ La Libertad Avanza\n\v2_ Uni%cn por la patria\n\v3_Juntos por el cambio\n\v4_Frente de izquierda\n\v5_Hacemos por nuestro pa%cs\n",162,161);
-            do {
-                scanf("%d", &mesa1.partidos[i].partido);
-                if(mesa1.partidos[i].partido < 1 || mesa1.partidos[i].partido > 5){
-                    printf("Ingrese una opci%cn correcta\n",162);
-                }
-            } while (mesa1.partidos[i].partido < 1 || mesa1.partidos[i].partido > 5);*/
+            /*for (int i = 0; i < 5; ++i) {
+                printf("Ingrese el nombre del partido\n");
+                printf("1_ La Libertad Avanza\n\v2_ Uni%cn por la patria\n\v3_Juntos por el cambio\n\v4_Frente de izquierda\n\v5_Hacemos por nuestro pa%cs\n",162,161);
+                do {
+                    scanf("%d", &mesa1.partidos[i].partido);
+                    if(mesa1.partidos[i].partido < 1 || mesa1.partidos[i].partido > 5){
+                        printf("Ingrese una opci%cn correcta\n",162);
+                    }
+                } while (mesa1.partidos[i].partido < 1 || mesa1.partidos[i].partido > 5);*/
             rewind(a2);
             while(fread(&nom,sizeof(struct Nombres),1,a2))
             {
@@ -66,6 +66,7 @@ int cargarMesa(){
 
                 printf("Ingrese la cantidad de votos para el candidato a gobernador: %s\n",nom.gob);
                 scanf("%d",&mesa1.partidos[nom.id].votos_gobernador);
+                mesa1.partidos[nom.id].partido=nom.id;
             }
             printf("Ingrese la cantidad de votos en blancos que tuvo la mesa\n");
             scanf("%d",&mesa1.votos_en_blanco);
@@ -115,41 +116,41 @@ int comprobar_mesa(struct Mesa *aux)
 }
 
 void UnicaVez(){
-	admin admin;
-	char aux[10];
-	int n=0;
-	FILE* t;
-	t= fopen("Data.bin", "ab");
-	if(t==NULL)
-	{
-		printf("ARCHIVO: No encontrado\n");
-		exit (-1);
-	}
-	printf("EL PROGRAMA PERMITE EL INGRESO DE UNA CLAVE MAESTRA Y LA CANTIDAD DE PARTIDOS QUE USARA EL PROGRAMA, UNA UNICA VEZ\n\n");
-	printf("Debe ingresar una clave de 8 digitos\n\n");
-	printf("Ingrese la clave maestra:");
-	fflush(stdin);
-	scanf("%s",&aux);
-	while(strlen(aux) !=8){
-		system("cls");
-		printf("Defina una contrase%ca valida:",164);
-		fflush(stdin);
-		scanf("%s",&aux);
-		fflush(stdin);
-	}
-	strcpy(admin.contrasenia,aux);
-	printf("\nIngrese la cantidad de partidos con la que se manejara el programa:");
-	scanf("%d",&admin.cantp);
-	rewind(t);
-	fwrite(&admin,sizeof(admin),1,t);
-	fclose(t);
-	while(n<admin.cantp)
+    admin admin;
+    char aux[10];
+    int n=0;
+    FILE* t;
+    t= fopen("Data.bin", "ab");
+    if(t==NULL)
+    {
+        printf("ARCHIVO: No encontrado\n");
+        exit (-1);
+    }
+    printf("EL PROGRAMA PERMITE EL INGRESO DE UNA CLAVE MAESTRA Y LA CANTIDAD DE PARTIDOS QUE USARA EL PROGRAMA, UNA UNICA VEZ\n\n");
+    printf("Debe ingresar una clave de 8 digitos\n\n");
+    printf("Ingrese la clave maestra:");
+    fflush(stdin);
+    scanf("%s",&aux);
+    while(strlen(aux) !=8){
+        system("cls");
+        printf("Defina una contrase%ca valida:",164);
+        fflush(stdin);
+        scanf("%s",&aux);
+        fflush(stdin);
+    }
+    strcpy(admin.contrasenia,aux);
+    printf("\nIngrese la cantidad de partidos con la que se manejara el programa:");
+    scanf("%d",&admin.cantp);
+    rewind(t);
+    fwrite(&admin,sizeof(admin),1,t);
+    fclose(t);
+    while(n<admin.cantp)
     {
         printf("\nIngrese los datos del Partido %d",n+1);
         cargar_nompartido();
         n++;
     }
-	system("pause");
+    system("pause");
 
 }
 
@@ -183,19 +184,89 @@ void cargar_nompartido()
     fclose(archivo);
 }
 
+void mostrar_mesas_ordenadas()
+{
+    system("cls");
+    FILE *archivo = fopen("mesas.bin","rb");
+    if (archivo == NULL){
+        printf("\nHubo un error\n");
+        return -1;
+    }
+    FILE *a2 = fopen("nombres.bin","rb");
+    if (a2 == NULL){
+        printf("\nHubo un error\n");
+        return -1;
+    }
+    struct Mesa mesa;
+    struct Nombres nom;
+    int tam=0;
+    rewind(archivo);
+    while(fread(&mesa,sizeof(struct Mesa),1,archivo))
+    {
+        tam++;
+    }
+    int vec[tam];
+    rewind(archivo);
+    for(int j=0;j<tam;j++)
+    {
+        fread(&mesa,sizeof(struct Mesa),1,archivo);
+        vec[j]=mesa.num_mesa;
+    }
+    ordenar(vec,tam);
+    rewind(archivo);
+    for(int k=0;k<tam;k++)
+    {
+
+        while(fread(&mesa,sizeof(struct Mesa),1,archivo))
+        {
+            if(mesa.num_mesa==vec[k])
+            {
+                rewind(a2);
+                printf("--------------------------------------------------------------------------------");
+                printf("\nMESA N:%d\n",mesa.num_mesa);
+                for(int i=0;i<2;i++)
+                {
+                    fread(&nom,sizeof(struct Nombres),1,a2);
+                    printf("\nPARTIDO:%s\nPRESIDENTE:%s\tGONERNADOR:%s",nom.frente,nom.presi,nom.gob);
+                    printf("\n\n%d   \t\t \t %d\n",mesa.partidos[i].votos_presidente,mesa.partidos[i].votos_gobernador);
+                }
+                printf("--------------------------------------------------------------------------------");
+            }
+        }
+        rewind(archivo);
+    }
+    system("pause");
+    system("cls");
+    fclose(archivo);
+}
+
+void cambiar(int *xp, int *yp) {
+    int temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
+
+void ordenar(int arr[], int n) {
+    for (int i = 0; i < n-1; i++)
+        for (int j = 0; j < n-i-1; j++)
+            if (arr[j] > arr[j+1])
+                cambiar(&arr[j], &arr[j+1]);
+}
+
 int main() {
     FILE* t = fopen("Data.bin", "r+b");
-	if(t==NULL){
-		fclose(t);
-		UnicaVez();
-	}
-	system("cls");
+    if(t==NULL){
+        fclose(t);
+        UnicaVez();
+    }
+    system("cls");
     int opcion;
     do {
         printf("Bienvenido al sistema de votos\nPor favor ingrese la accion que desea realizar\n");
-        printf("1_Cargar mesa\n4_Salir\n");
+        printf("1_Cargar mesa\n2_Mostrar Todas las mesas ordenadas\n4_Salir\n");
         scanf("%d",&opcion);
         if(opcion==1)cargarMesa();
+        if(opcion==2)mostrar_mesas_ordenadas();
     } while (opcion != 4);
     return 0;
 }
