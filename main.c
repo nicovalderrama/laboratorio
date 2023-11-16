@@ -28,20 +28,20 @@ struct Mesa{
 };
 
 int cargarMesa(){
-    FILE *archivo = fopen("mesas.bin","a+b");
-    if (archivo == NULL){
-        printf("\nHubo un error\n");
-        return -1;
-    }
-    FILE *a2 = fopen("nombres.bin","rb");
-    if (a2 == NULL){
-        printf("\nHubo un error\n");
-        return -1;
-    }
     struct Mesa mesa1;
     struct Nombres nom;
     int bandera, comprobar;
     do {
+        FILE *archivo = fopen("mesas.bin","a+b");
+        if (archivo == NULL){
+            printf("\nHubo un error\n");
+            return -1;
+        }
+        FILE *a2 = fopen("nombres.bin","rb");
+        if (a2 == NULL){
+            printf("\nHubo un error\n");
+            return -1;
+        }
         system("cls");
         printf("ingrese el n%cmero de mesa\n",163);
         scanf("%d",&mesa1.num_mesa);
@@ -79,10 +79,9 @@ int cargarMesa(){
             system("pause");
         }
         fflush(stdin);
+        fclose(archivo);
+        fclose(a2);
     } while (bandera==1);
-
-    fclose(archivo);
-    fclose(a2);
     system("cls");
     return 0;
 }
