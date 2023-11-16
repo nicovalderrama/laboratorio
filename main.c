@@ -257,19 +257,39 @@ int mostrar_mesa_id(int num_mesa){
         printf("Hubo un error\n");
         return -1;
     }
+    FILE *data = fopen("Data.bin","rb");
+    if(data == NULL){
+        printf("Hubo un error\n");
+        return -1;
+    }
     struct Mesa mesa;
-    struct Nombres nom;
+    admin adm;
     int mesa_encontrada;
-        while (fread(&mesa,sizeof(mesa),1,mesas)){
-            if(mesa.num_mesa == num_mesa){
+    fread(&adm,sizeof(adm),1,data);
+    int n = adm.cantp;
+    struct Nombres nombres_array[n];
+
+    while (fread(&mesa,sizeof(mesa),1,mesas)){
+        if(mesa.num_mesa == num_mesa){
                 mesa_encontrada = 1;
+                int mas_votado = 0;
+                int votos_totales_presi = 0;
+                for (int i = 0; i < n ; ++i) {
+                    votos_totales_presi += mesa.partidos[i].votos_presidente;
+                    if(mesa.partidos[i].votos_presidente > mesa.partidos[mas_votado].votos_presidente){
+                        mas_votado=i;
+                    }
+                }
+                fread(nombres_array, sizeof(struct Nombres), n, nombres);
                 printf("-------------------------------------------------------------------------------------------------------\n");
-                printf("| %-8s | %-20s | %-20s | %-20s | %-8s | %-8s |\n", "N. MESA", "PARTIDO", "PRESIDENTE","GOBERNADOR", "VOTOS P.", "VOTOS G.");
+                printf("| %-8s | %-20s | %-20s | %-8s | %-10s |\n", "N. MESA", "PARTIDO", "PRESIDENTE", "VOTOS P.", "PORCENTAJE");
                 printf("-------------------------------------------------------------------------------------------------------\n");
-                        for (int i = 0; i < 2; ++i) {
-                            fread(&nom, sizeof(struct Nombres), 1, nombres);
-                            printf("| %-8d | %-20s | %-20s | %-20s | %-8d | %-8d |\n", mesa.num_mesa, nom.frente, nom.presi,nom.gob, mesa.partidos[i].votos_presidente, mesa.partidos[i].votos_gobernador);
-                        }
+                printf("| %-8d | %-20s | %-20s | %-8d |\n", mesa.num_mesa, nombres_array[mas_votado].frente, nombres_array[mas_votado].presi, mesa.partidos[mas_votado].votos_presidente);
+                for (int i = 0; i < n; ++i) {
+                    if (i != mas_votado) {
+                        printf("| %-8s | %-20s | %-20s | %-8d |\n", "", nombres_array[i].frente, nombres_array[i].presi, mesa.partidos[i].votos_presidente);
+                    }
+                }
                 printf("-------------------------------------------------------------------------------------------------------\n");
             }
         }
@@ -280,6 +300,7 @@ int mostrar_mesa_id(int num_mesa){
     system("cls");
     fclose(mesas);
     fclose(nombres);
+    fclose(data);
 }
 
 int main() {
