@@ -535,7 +535,7 @@ int main() {
         if(opcion==2)mostrar_mesas_ordenadas();
         if(opcion==3){
             int num_mesa;
-            printf("Ingrese el n%cmero de mesa que desea buscar:\n",163);
+            printf("Ingres el n%cmero de mesa que desea buscar:\n",163);
             scanf("%d",&num_mesa);
             system("cls");
             mostrar_mesa_id(num_mesa);
