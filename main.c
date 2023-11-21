@@ -399,9 +399,12 @@ void mostrar_votos_totales()
     }
     ordenar(gobernadores,n);
     int o=n-1;
-    printf("\n\t\t---------------RESULTADOS GENERALES------------------\n");
-    printf("\nPRESIDENTE\n");
+    printf("\n\t\t\t\t---------------RESULTADOS GENERALES------------------\n\v\v");
+    printf("\nRESULTADOS PRESIDENTE\v");
     rewind(nombres);
+    printf("---------------------------------------------------------\n");
+    printf("| %-20s | |%-10s | | %-11s |\n","CANDIDATO","VOTOS TOTALES","PORCENTAJE");
+    printf("---------------------------------------------------------\n");
     for(int j=0;j<n;j++)
     {
         if(presidentes[o]==vec[j].total_presi){
@@ -412,7 +415,7 @@ void mostrar_votos_totales()
             {
                 if(vec[j].id==nom.id)
                 {
-                    printf("\npresi %s: %d votos porcetaje:%.2f\n",nom.presi,vec[j].total_presi,porc);
+                    printf("| %-20s | | %-12d | | %-10.2f%c |\n",nom.presi,vec[j].total_presi,porc,37);
                 }
             }
             rewind(nombres);
@@ -420,10 +423,15 @@ void mostrar_votos_totales()
             o--;
             j=-1;
         }
+
     }
-    printf("\nGOBERNADOR\n");
+    printf("---------------------------------------------------------\n");
+    printf("\nRESULTADOS GOBERNADOR\n");
     o=n-1;
     rewind(nombres);
+    printf("---------------------------------------------------------\n");
+    printf("| %-20s | |%-10s | | %-11s |\n","CANDIDATO","VOTOS TOTALES","PORCENTAJE");
+    printf("---------------------------------------------------------\n");
     for(int j=0;j<n;j++)
     {
         if(gobernadores[o]==vec[j].total_gob){
@@ -434,7 +442,7 @@ void mostrar_votos_totales()
             {
                 if(vec[j].id==nom.id)
                 {
-                    printf("\ngob %s: %d votos porcetaje:%.2f\n",nom.gob,vec[j].total_gob,porc);
+                    printf("| %-20s | | %-12d | | %-10.2f%c |\n",nom.gob,vec[j].total_gob,porc,37);
                 }
             }
             rewind(nombres);
@@ -442,15 +450,12 @@ void mostrar_votos_totales()
             j=-1;
         }
     }
+    printf("---------------------------------------------------------\n");
     aux=votos_blanco;
     aux2=total_votos;
     porc=(aux*100)/aux2;
-    printf("\n-----------------------------------------------------------------------------\n");
-    printf("\nPORCENTAJE DE VOTOS EN BLANCO=%.2f\n",porc);
-    aux=votos_imp;
-    aux2=total_votos;
-    porc=(aux*100)/aux2;
-    printf("\nPORCENTAJE DE VOTOS IMPUGNADOS=%.2f\n\n\n",porc);
+    printf("\nPORCENTAJE DE VOTOS EN BLANCO: %.2f%c\n",porc,37);
+    printf("\nTOTAL DE VOTOS IMPUGNADOS: %d\n\n\n",votos_imp);
     system("pause");
     fclose(mesa);
     fclose(nombres);
