@@ -7,6 +7,12 @@ typedef struct{
     int cantp;
 }admin;
 
+struct fin{
+    int id;
+    int total_presi;
+    int total_gob;
+};
+
 struct Nombres{
     int id;
     char frente[100];
@@ -133,6 +139,7 @@ void UnicaVez(){
     }
     strcpy(admin.contrasenia,aux);
     printf("\nIngrese la cantidad de partidos con la que se manejara el programa:");
+    fflush(stdin);
     scanf("%d",&admin.cantp);
     rewind(t);
     fwrite(&admin,sizeof(admin),1,t);
@@ -190,6 +197,14 @@ int mostrar_mesas_ordenadas()
         printf("\nHubo un error\n");
         return -1;
     }
+    FILE *data = fopen("Data.bin","rb");
+    if(data == NULL){
+        printf("Hubo un error\n");
+        return -1;
+    }
+    admin adm;
+    fread(&adm,sizeof(adm),1,data);
+    int o=adm.cantp;
     struct Mesa mesa;
     struct Nombres nom;
     int tam=0;
@@ -218,9 +233,9 @@ int mostrar_mesas_ordenadas()
                 printf("-------------------------------------------------------------------------------------------------------\n");
                 printf("| %-8s | %-20s | %-20s | %-20s | %-8s | %-8s |\n", "N. MESA", "PARTIDO", "PRESIDENTE","GOBERNADOR", "VOTOS P.", "VOTOS G.");
                 printf("-------------------------------------------------------------------------------------------------------\n");
-                for (int i = 0; i < 2; ++i) {
+                for (int i = 0; i < o; ++i) {
                     fread(&nom, sizeof(struct Nombres), 1, a2);
-                    printf("| %-8d | %-20s | %-20s | %-20s | %-8d | %-8d |\n", mesa.num_mesa, nom.frente, nom.presi,nom.gob, mesa.partidos[i].votos_presidente, mesa.partidos[i].votos_gobernador);
+                    printf("| %-8d | %-20s | %-20s | %-20s | %-8d | %-8d |\n", mesa.num_mesa, nom.frente, nom.presi, nom.gob, mesa.partidos[i].votos_presidente, mesa.partidos[i].votos_gobernador);
                 }
                 printf("-------------------------------------------------------------------------------------------------------\n");
             }
@@ -231,6 +246,7 @@ int mostrar_mesas_ordenadas()
     system("cls");
     fclose(archivo);
     fclose(a2);
+    fclose(data);
 }
 
 void cambiar(int *xp, int *yp) {
@@ -267,81 +283,396 @@ int mostrar_mesa_id(int num_mesa){
     int mesa_encontrada = 0;
     fread(&adm,sizeof(adm),1,data);
     int n = adm.cantp;
+    int k=n-1;
     struct Nombres nombres_array[n];
-
+    int vec[n];
     while (fread(&mesa, sizeof(mesa), 1, mesas)) {
         if (mesa.num_mesa == num_mesa) {
             mesa_encontrada = 1;
-            int presi_mas_votado = 0;
             int votos_totales_presi = 0;
 
             for (int i = 0; i < n; ++i) {
                 votos_totales_presi += mesa.partidos[i].votos_presidente;
-                if (mesa.partidos[i].votos_presidente > mesa.partidos[presi_mas_votado].votos_presidente) {
-                    presi_mas_votado = i;
-                }
+                vec[i]=mesa.partidos[i].votos_presidente;
             }
+            ordenar(vec,n);
 
             fread(nombres_array, sizeof(struct Nombres), n, nombres);
             printf("-------------------------------------------------------------------------------------\n");
             printf("| %-8s | %-20s | %-20s | %-8s | %-13s |\n", "N. MESA", "PARTIDO", "PRESIDENTE", "VOTOS P.", "PORCENTAJE");
             printf("-------------------------------------------------------------------------------------\n");
 
-            float pje_presi_mas_votado = (mesa.partidos[presi_mas_votado].votos_presidente * 100.0) / votos_totales_presi;
-            printf("| %-8d | %-20s | %-20s | %-8d | %-12.2f%c |\n",
-                   mesa.num_mesa, nombres_array[presi_mas_votado].frente, nombres_array[presi_mas_votado].presi,
-                   mesa.partidos[presi_mas_votado].votos_presidente, pje_presi_mas_votado,37);
-
             for (int i = 0; i < n; ++i) {
-                if (i != presi_mas_votado) {
+                if (vec[k]==mesa.partidos[i].votos_presidente){
                     float porcentaje_votado = (mesa.partidos[i].votos_presidente * 100.0) / votos_totales_presi;
-                    printf("| %-8s | %-20s | %-20s | %-8d | %-12.2f%c |\n",
-                           "", nombres_array[i].frente, nombres_array[i].presi,
+                    printf("| %-8d | %-20s | %-20s | %-8d | %-12.2f%c |\n",
+                           mesa.num_mesa, nombres_array[i].frente, nombres_array[i].presi,
                            mesa.partidos[i].votos_presidente, porcentaje_votado,37);
+                    k--;
+                    i=-1;
                 }
             }
             printf("-------------------------------------------------------------------------------------\n");
 
-            int gob_mas_votado = 0;
             int votos_totales_gob = 0;
 
             for (int i = 0; i < n; ++i) {
                 votos_totales_gob += mesa.partidos[i].votos_gobernador;
-                if (mesa.partidos[i].votos_gobernador > mesa.partidos[gob_mas_votado].votos_gobernador) {
-                    gob_mas_votado = i;
-                }
+                vec[i]=mesa.partidos[i].votos_gobernador;
             }
-
+            ordenar(vec,n);
+            k=n-1;
             fread(nombres_array, sizeof(struct Nombres), n, nombres);
             printf("-------------------------------------------------------------------------------------\n");
             printf("| %-8s | %-20s | %-20s | %-8s | %-13s |\n", "N. MESA", "PARTIDO", "GOBERNADOR", "VOTOS G.", "PORCENTAJE");
             printf("-------------------------------------------------------------------------------------\n");
 
-            float pje_gob_mas_votado = (mesa.partidos[gob_mas_votado].votos_gobernador * 100.0) / votos_totales_gob;
-            printf("| %-8d | %-20s | %-20s | %-8d | %-12.2f%c |\n",
-                   mesa.num_mesa, nombres_array[gob_mas_votado].frente, nombres_array[gob_mas_votado].gob,
-                   mesa.partidos[gob_mas_votado].votos_gobernador, pje_gob_mas_votado,37);
 
             for (int i = 0; i < n; ++i) {
-                if (i != gob_mas_votado) {
+                if (vec[k]==mesa.partidos[i].votos_gobernador) {
                     float porcentaje_votado = (mesa.partidos[i].votos_gobernador * 100.0) / votos_totales_gob;
-                    printf("| %-8s | %-20s | %-20s | %-8d | %-12.2f%c |\n",
-                           "", nombres_array[i].frente, nombres_array[i].gob,
+                    printf("| %-8d | %-20s | %-20s | %-8d | %-12.2f%c |\n",
+                           mesa.num_mesa, nombres_array[i].frente, nombres_array[i].gob,
                            mesa.partidos[i].votos_gobernador, porcentaje_votado,37);
+                    k--;
+                    i=-1;
                 }
             }
             printf("-------------------------------------------------------------------------------------\n");
             fflush(stdin);
         }
     }
-        if(mesa_encontrada != 1){
-            printf("\v\vNO SE ENCONTR%c LA MESA N%cMERO: %d\n",224,233,num_mesa);
-        }
+    if(mesa_encontrada != 1){
+        printf("\v\vNO SE ENCONTR%c LA MESA N%cMERO: %d\n",224,233,num_mesa);
+    }
     system("pause");
     system("cls");
     fclose(mesas);
     fclose(nombres);
     fclose(data);
+}
+
+void mostrar_votos_totales()
+{
+    system("cls");
+    FILE *mesa=fopen("mesas.bin","rb");if (mesa==NULL) printf("\n El archivo no existe mesas.bin\n");
+    FILE *data=fopen("Data.bin","rb"); if (data==NULL) printf("\nEl archivo Data.bin no existe\n");
+    FILE *nombres=fopen("nombres.bin","rb"); if (nombres==NULL) printf ("\nEl archivo nombres.bin no existe\n");
+    struct Mesa recorrer;
+    struct Partido acumulador;
+    struct Nombres nom;
+    admin adm;
+    int n, votos_total_presi=0, votos_total_gob=0, i=0,total_votos=0,votos_blanco=0,votos_imp=0;
+    float porc=0,aux=0,aux2=0;
+    fread(&adm, sizeof(admin), 1, data);
+    n=adm.cantp;
+    struct fin vec[n];
+    for(i=0; i<n; i++)
+    {
+        vec[i].total_presi=0;
+        vec[i].total_gob=0;
+    }
+    rewind(mesa);
+    while(fread(&recorrer, sizeof(struct Mesa), 1, mesa))
+    {
+        for(i=0; i<n; i++)
+        {
+            votos_total_presi=votos_total_presi+recorrer.partidos[i].votos_presidente;
+            votos_total_gob=votos_total_gob+recorrer.partidos[i].votos_gobernador;
+            vec[i].id=i;
+            vec[i].total_presi=vec[i].total_presi+recorrer.partidos[i].votos_presidente;
+            vec[i].total_gob=vec[i].total_gob+recorrer.partidos[i].votos_gobernador;
+        }
+        votos_blanco=votos_blanco+recorrer.votos_en_blanco;
+        votos_imp=votos_imp+recorrer.votos_impugnados;
+    }
+    total_votos=votos_total_gob+votos_total_presi+votos_blanco+votos_imp;
+    int presidentes[n],gobernadores[n];
+    for(int k=0;k<n;k++)
+    {
+        presidentes[k]=vec[k].total_presi;
+    }
+    ordenar(presidentes,n);
+    for(int k=0;k<n;k++)
+    {
+        gobernadores[k]=vec[k].total_gob;
+    }
+    ordenar(gobernadores,n);
+    int o=n-1;
+    printf("\n\t\t---------------RESULTADOS GENERALES------------------\n");
+    printf("\nPRESIDENTE\n");
+    rewind(nombres);
+    for(int j=0;j<n;j++)
+    {
+        if(presidentes[o]==vec[j].total_presi){
+            aux=vec[j].total_presi;
+            aux2=votos_total_presi;
+            porc=(aux*100)/aux2;
+            while(fread(&nom,sizeof(struct Nombres),1,nombres))
+            {
+                if(vec[j].id==nom.id)
+                {
+                    printf("\npresi %s: %d votos porcetaje:%.2f\n",nom.presi,vec[j].total_presi,porc);
+                }
+            }
+            rewind(nombres);
+
+            o--;
+            j=-1;
+        }
+    }
+    printf("\nGOBERNADOR\n");
+    o=n-1;
+    rewind(nombres);
+    for(int j=0;j<n;j++)
+    {
+        if(gobernadores[o]==vec[j].total_gob){
+            aux=vec[j].total_gob;
+            aux2=votos_total_gob;
+            porc=(aux*100) / aux2;
+            while(fread(&nom,sizeof(struct Nombres),1,nombres))
+            {
+                if(vec[j].id==nom.id)
+                {
+                    printf("\ngob %s: %d votos porcetaje:%.2f\n",nom.gob,vec[j].total_gob,porc);
+                }
+            }
+            rewind(nombres);
+            o--;
+            j=-1;
+        }
+    }
+    aux=votos_blanco;
+    aux2=total_votos;
+    porc=(aux*100)/aux2;
+    printf("\n-----------------------------------------------------------------------------\n");
+    printf("\nPORCENTAJE DE VOTOS EN BLANCO=%.2f\n",porc);
+    aux=votos_imp;
+    aux2=total_votos;
+    porc=(aux*100)/aux2;
+    printf("\nPORCENTAJE DE VOTOS IMPUGNADOS=%.2f\n\n\n",porc);
+    system("pause");
+    fclose(mesa);
+    fclose(nombres);
+    fclose(data);
+}
+
+void Modificar_mesa(){
+    system("cls");
+    FILE *a2 = fopen("nombres.bin","rb");
+    if(a2 == NULL){
+        printf("Hubo un error\n");
+        return -1;
+    }
+    long a;
+    int comp;
+    admin adm;
+    struct Mesa mesa;
+    struct Nombres nom;
+    int nummesa;
+    int opc,control=0;
+    printf("\nINGRESE LA CLAVE MAESTRA\n");
+    scanf("%s",&adm.contrasenia);
+    comp=comparar_contrasenia(adm.contrasenia);
+    if(comp!=0)
+    {
+        printf("\nNO TIENE PERMITIDO HACER ESTA ACCION\n");
+        system("pause");
+        return 0;
+    }
+    FILE *archivo=fopen("mesas.bin", "r+b");
+    if(archivo==NULL)
+    {
+        printf("ARCHIVO NO ENCONTRADO");
+        exit(-1);
+    }
+    system("cls");
+    printf("\n INGRESE EL NUMERO DE MESA A MODIFICAR : ");
+    fflush(stdin);
+    scanf("%d", &nummesa);
+    int comparar;
+    rewind(archivo);
+    while(fread(&mesa, sizeof(struct Mesa), 1 , archivo)){
+        if(mesa.num_mesa==nummesa){
+            a=ftell(archivo);
+            fflush(stdin);
+            printf("\nMESA ENCONTRADA\n");
+            printf("CARGAR LA CANTIDAD DE VOTOS PARA CADA PARTIDO\n");
+            rewind(a2);
+            while(fread(&nom,sizeof(struct Nombres),1,a2))
+            {
+                printf("\nINGRESO PARA PARTIDO: %s\n",nom.frente);
+                printf("Ingrese la cantidad de votos para el candidato a presidente: %s\n",nom.presi);
+                scanf("%d",&mesa.partidos[nom.id].votos_presidente);
+
+                printf("Ingrese la cantidad de votos para el candidato a gobernador: %s\n",nom.gob);
+                scanf("%d",&mesa.partidos[nom.id].votos_gobernador);
+                mesa.partidos[nom.id].partido=nom.id;
+            }
+            printf("Ingrese la cantidad de votos en blancos que tuvo la mesa\n");
+            scanf("%d",&mesa.votos_en_blanco);
+
+            printf("ingrese la cantidad de votos impugnados que tuvo la mesa\n");
+            scanf("%d",&mesa.votos_impugnados);
+            rewind(archivo);
+            fseek(archivo,a-sizeof(struct Mesa),0);
+            fwrite(&mesa, sizeof(struct Mesa), 1, archivo);
+            fclose(archivo);
+            printf("\nMESA MODIFICADA EXITOSAMENTE\n");
+            system("pause");
+            control=1;
+        }
+    }
+    if(control==0)
+    {
+        printf("\nLA MESA NO SE ENCUENTRA INGRESADA\n");
+        system("pause");
+    }
+
+    fclose(a2);
+}
+
+void Modificar_partido(){
+    system("cls");
+    FILE *a3 = fopen("Data.bin","rb");
+    if(a3 == NULL){
+        printf("Hubo un error\n");
+        return -1;
+    }
+    long a;
+    int comp;
+    admin adm,adm2;
+    fread(&adm, sizeof(admin), 1, a3);
+    int n=adm.cantp;
+    rewind(a3);
+    fclose(a3);
+    struct Mesa mesa;
+    struct Nombres nom,nom2;
+    int num_p;
+    int opc,control=0;
+    printf("\nINGRESE LA CLAVE MAESTRA\n");
+    fflush(stdin);
+    scanf("%s",&adm2.contrasenia);
+    comp=comparar_contrasenia(adm2.contrasenia);
+    if(comp!=0)
+    {
+        printf("\nNO TIENE PERMITIDO HACER ESTA ACCION\n");
+        system("pause");
+        return 0;
+    }
+    FILE *a2 = fopen("nombres.bin","r+b");
+    if(a2 == NULL)
+    {
+        printf("ARCHIVO NO ENCONTRADO");
+        exit(-1);
+    }
+    system("cls");
+    for(int i=0;i<n;i++)
+    {
+        fread(&nom, sizeof(struct Nombres), 1 ,a2);
+        printf("%d_%s\n",i+1,nom.frente);
+    }
+    printf("\n INGRESE EL NUMERO DE PARTIDO A MODIFICAR : ");
+    fflush(stdin);
+    scanf("%d", &num_p);
+    num_p--;
+    rewind(a2);
+    while(fread(&nom, sizeof(struct Nombres), 1 , a2)){
+        if(nom.id==num_p){
+            a=ftell(a2);
+            printf("\nCARGAR LOS NUEVOS DATOS DEL PARTIDO\n");
+            printf("\nINGRESE NOMBRE DEL PARTIDO\n");
+            fflush(stdin);
+            gets(nom2.frente);
+            printf("Ingrese el nombre del candidato a presidente del partido\n");
+            fflush(stdin);
+            gets(nom2.presi);
+            printf("Ingrese el nombre del candidato a gobernador del partido\n");
+            fflush(stdin);
+            gets(nom2.gob);
+            nom2.id=num_p;
+            rewind(a2);
+            fseek(a2,a-sizeof(struct Nombres),0);
+            fwrite(&nom2, sizeof(struct Nombres), 1, a2);
+            fclose(a2);
+            printf("\nPARTIDO MODIFICADO EXITOSAMENTE\n");
+            system("pause");
+            control=1;
+        }
+    }
+    if(control==0)
+    {
+        printf("\nOPCION MAL INGRESADA VUELVA A INTENTAR\n");
+        system("pause");
+    }
+
+    fclose(a2);
+}
+
+int comparar_contrasenia(char* x){
+    int a;
+    admin admin;
+    FILE *t=fopen("Data.bin", "rb");
+    rewind(t);
+    fread(&admin,sizeof(admin), 1 , t);
+    if(strcmp(x, admin.contrasenia)==0){
+        a=0;
+    }else{
+        a=1;
+    }
+    fclose(t);
+    return a;
+}
+
+void cambiar_contrasenia(){
+    FILE *t=fopen("Data.bin", "r+b");
+    char aux[10],aux2[10];
+    admin admin;
+    int control=0;
+    while(control==0)
+    {
+        system("cls");
+        printf("Ingrese la contrase%ca actual : ",164);
+        fflush(stdin);
+        scanf("%s",&aux);
+        rewind(t);
+        fread(&admin,sizeof(admin),1,t);
+        strcpy(aux2,admin.contrasenia);
+        int num=admin.cantp;
+        if((strcmp(aux,aux2))==0)
+        {
+            printf("Contrase%ca verificada",164);
+            printf("\n");
+            system("PAUSE");
+            fflush(stdin);
+            printf("\n----------------------\n");
+            printf("\nIngrese nueva contrase%ca : ",164);
+            scanf("%s",&aux2);
+            while(strlen(aux2) !=8){
+                system("cls");
+                printf("\nDefina una contrase%ca de 8 caracteres:",164);
+                fflush(stdin);
+                scanf("%s",&aux2);
+            }
+            strcpy(admin.contrasenia,aux2);
+            admin.cantp=num;
+            rewind(t);
+            fwrite(&admin,sizeof(admin),1,t);
+            printf("\nContrase%ca modificada con exito\n",164);
+            printf("\n");
+            system("pause");
+            system("cls");
+            control=1;
+
+        }else
+        {
+            printf("\nLa contrase%ca actual es incorrecta\nIntente nuevamente\n",164);
+            system("pause");
+            control=1;
+        }
+
+    }
+    fclose(t);
 }
 
 int main() {
@@ -353,8 +684,9 @@ int main() {
     system("cls");
     int opcion;
     do {
+        system("cls");
         printf("Bienvenido al sistema de votos\nPor favor ingrese la accion que desea realizar\n");
-        printf("1_Cargar mesa\n2_Mostrar Todas las mesas ordenadas\n3_Buscar una mesa\n4_Salir\n");
+        printf("1_Cargar mesa\n2_Mostrar Todas las mesas ordenadas\n3_Buscar una mesa\n4_Mostrar los votos totales\n5_Modificar mesa\n6_Modificar clave maestra\n7_Modificar Partido\n8_Salir\n");
         scanf("%d",&opcion);
         if(opcion==1)cargarMesa();
         if(opcion==2)mostrar_mesas_ordenadas();
@@ -365,6 +697,10 @@ int main() {
             system("cls");
             mostrar_mesa_id(num_mesa);
         }
-    } while (opcion != 4);
+        if(opcion==4) mostrar_votos_totales();
+        if(opcion==5) Modificar_mesa();
+        if(opcion==6) cambiar_contrasenia();
+        if(opcion==7) Modificar_partido();
+    } while (opcion != 8);
     return 0;
 }
